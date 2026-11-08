@@ -1,0 +1,9 @@
+{
+  "appId": "com.hakim.musictest",
+  "appName": "Music Test",
+  "webDir": "www",
+  "ios": {
+    "contentInset": "never",
+    "scrollEnabled": true
+  }
+}

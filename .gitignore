@@ -1,0 +1,6 @@
+node_modules/
+ios/
+build/
+www/capacitor.js
+*.ipa
+Payload/

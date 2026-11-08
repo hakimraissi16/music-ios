@@ -1,0 +1,17 @@
+{
+  "name": "music-ios",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Hakim Music - iPhone feasibility test (phase 1)",
+  "scripts": {
+    "prepare-web": "node -e \"require('fs').copyFileSync('node_modules/@capacitor/core/dist/capacitor.js','www/capacitor.js')\""
+  },
+  "dependencies": {
+    "@capacitor/core": "8.6.0",
+    "@capacitor/ios": "8.6.0",
+    "native-player": "file:./native-player"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "8.6.0"
+  }
+}

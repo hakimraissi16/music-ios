@@ -1,0 +1,9 @@
+{
+  "name": "native-player",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Local Capacitor plugin: native AVQueuePlayer with lock-screen controls",
+  "capacitor": {
+    "ios": { "src": "ios" }
+  }
+}

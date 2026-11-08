@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Music Test</title>
+  <style>
+    :root { --bg:#09090b; --card:#18181b; --line:#27272a; --text:#fafafa; --muted:#a1a1aa; --accent:#22c55e; --warn:#f59e0b; --bad:#ef4444; }
+    * { box-sizing: border-box; }
+    body { margin:0; background:var(--bg); color:var(--text); font:15px/1.5 -apple-system, system-ui, sans-serif;
+           padding: calc(env(safe-area-inset-top) + 12px) 14px calc(env(safe-area-inset-bottom) + 20px); }
+    h1 { font-size:18px; margin:0 0 4px; }
+    .sub { color:var(--muted); font-size:12px; margin-bottom:12px; }
+    .card { background:var(--card); border:1px solid var(--line); border-radius:14px; padding:12px; margin-bottom:12px; }
+    label { display:block; font-size:12px; color:var(--muted); margin:8px 0 4px; }
+    input, select, textarea { width:100%; background:#0f0f12; color:var(--text); border:1px solid var(--line); border-radius:10px;
+           padding:10px; font:inherit; direction:ltr; }
+    textarea { min-height:90px; font:12px ui-monospace, monospace; }
+    .row { display:flex; gap:8px; }
+    .row > * { flex:1; }
+    button { background:#27272a; color:var(--text); border:0; border-radius:10px; padding:12px 10px; font:inherit; font-weight:600; }
+    button.primary { background:var(--accent); color:#04130a; }
+    button:disabled { opacity:.4; }
+    .now { display:flex; gap:10px; align-items:center; }
+    .now img { width:56px; height:56px; border-radius:8px; object-fit:cover; background:#222; }
+    .now .t { font-weight:700; }
+    .now .a { color:var(--muted); font-size:13px; }
+    .bar { height:6px; background:#27272a; border-radius:3px; margin:10px 0 4px; position:relative; }
+    .bar > div { position:absolute; inset:0 auto 0 0; background:var(--accent); border-radius:3px; width:0; }
+    .times { display:flex; justify-content:space-between; color:var(--muted); font-size:12px; direction:ltr; }
+    .pill { display:inline-block; padding:2px 8px; border-radius:99px; background:#27272a; font-size:12px; margin-inline-start:6px; }
+    #log { font:11.5px/1.45 ui-monospace, monospace; direction:ltr; text-align:left; white-space:pre-wrap; word-break:break-word;
+           max-height:320px; overflow:auto; background:#0f0f12; border-radius:10px; padding:8px; }
+    .ok { color:var(--accent); } .warn { color:var(--warn); } .bad { color:var(--bad); }
+    details summary { color:var(--muted); font-size:13px; }
+  </style>
+</head>
+<body>
+  <h1>اختبار الجدوى — المرحلة 1</h1>
+  <div class="sub">نسخة المستخرج: <span id="ver"></span></div>
+
+  <div class="card">
+    <label>الأغنية الأولى (رابط يوتيوب)</label>
+    <input id="link1" placeholder="https://youtu.be/..." inputmode="url" autocomplete="off" />
+    <label>الأغنية التالية (لاختبار الانتقال والشاشة مقفلة)</label>
+    <input id="link2" placeholder="https://youtu.be/..." inputmode="url" autocomplete="off" />
+    <div class="row">
+      <div>
+        <label>المشغّل</label>
+        <select id="engine">
+          <option value="native">أصلي (AVPlayer)</option>
+          <option value="html">ويب (audio)</option>
+        </select>
+      </div>
+      <div>
+        <label>الجودة</label>
+        <select id="quality">
+          <option value="normal">عادية ~128k</option>
+          <option value="low">اقتصادية ~48k</option>
+        </select>
+      </div>
+    </div>
+    <label>طريقة الاستخراج</label>
+    <select id="client"></select>
+    <div class="row" style="margin-top:12px">
+      <button id="go" class="primary">استخرج وشغّل</button>
+      <button id="test">اختبار الاستخراج فقط</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="now">
+      <img id="art" alt="" />
+      <div style="flex:1;min-width:0">
+        <div class="t" id="title">—</div>
+        <div class="a" id="artist"></div>
+        <div class="a"><span id="state">متوقف</span><span class="pill" id="info"></span></div>
+      </div>
+    </div>
+    <div class="bar" id="bar"><div id="fill"></div></div>
+    <div class="times"><span id="cur">0:00</span><span id="dur">0:00</span></div>
+    <div class="row" style="margin-top:10px">
+      <button id="prev">⏮︎</button>
+      <button id="toggle">⏯︎</button>
+      <button id="next">⏭︎</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="row" style="align-items:center">
+      <strong style="flex:2">السجل</strong>
+      <button id="copy">نسخ</button>
+      <button id="clear">مسح</button>
+    </div>
+    <div id="log" style="margin-top:8px"></div>
+  </div>
+
+  <div class="card">
+    <details>
+      <summary>متقدم: تعديل طرق الاستخراج دون إعادة بناء</summary>
+      <label>JSON يُدمج مع الطرق المدمجة (اتركه فارغًا عادةً)</label>
+      <textarea id="custom" placeholder='{"visionos":{"label":"...","nameId":101,"context":{...}}}'></textarea>
+      <div class="row" style="margin-top:8px">
+        <button id="saveCustom">حفظ</button>
+        <button id="resetCustom">إعادة الضبط</button>
+      </div>
+    </details>
+  </div>
+
+  <script src="capacitor.js"></script>
+  <script src="extractor.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

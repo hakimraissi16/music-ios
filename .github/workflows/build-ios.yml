@@ -1,0 +1,71 @@
+name: Build iPhone app (unsigned .ipa)
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: macos-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Show Xcode version
+        run: xcodebuild -version
+
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+
+      - name: Copy Capacitor runtime into www
+        run: npm run prepare-web
+
+      - name: Create iOS project
+        run: npx cap add ios
+
+      - name: Enable background audio
+        run: |
+          PLIST=ios/App/App/Info.plist
+          /usr/libexec/PlistBuddy -c "Delete :UIBackgroundModes" "$PLIST" 2>/dev/null || true
+          /usr/libexec/PlistBuddy -c "Add :UIBackgroundModes array" "$PLIST"
+          /usr/libexec/PlistBuddy -c "Add :UIBackgroundModes:0 string audio" "$PLIST"
+          /usr/libexec/PlistBuddy -c "Print :UIBackgroundModes" "$PLIST"
+
+      - name: Sync web + plugins
+        run: npx cap sync ios
+
+      - name: Check plugin registration
+        run: |
+          cat ios/App/CapApp-SPM/Package.swift
+          grep -q NativePlayerPlugin ios/App/App/capacitor.config.json && echo "NativePlayerPlugin registered" || (echo "NativePlayerPlugin NOT registered" && exit 1)
+
+      - name: Build (no signing; Sideloadly signs it on your PC)
+        run: |
+          xcodebuild \
+            -project ios/App/App.xcodeproj \
+            -scheme App \
+            -configuration Release \
+            -sdk iphoneos \
+            -destination 'generic/platform=iOS' \
+            -derivedDataPath build \
+            CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" \
+            build | tail -n 60
+          test -d build/Build/Products/Release-iphoneos/App.app
+
+      - name: Package .ipa
+        run: |
+          mkdir -p Payload
+          cp -R build/Build/Products/Release-iphoneos/App.app Payload/
+          zip -qry MusicTest.ipa Payload
+          ls -lh MusicTest.ipa
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: MusicTest-ipa
+          path: MusicTest.ipa
+          retention-days: 14
