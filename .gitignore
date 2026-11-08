@@ -1,5 +1,5 @@
 node_modules/
-ios/
+/ios/
 build/
 www/capacitor.js
 *.ipa
